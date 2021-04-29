@@ -1,0 +1,54 @@
+---
+- hosts: "{{ target }}"
+  become: yes
+  gather_facts: no
+
+  tasks:
+  - name: Install base packages
+    apt: 
+        name: ['qemu-utils', 'parted', 'gnu-fdisk', 'gddrescue', 'unzip']
+        update_cache: yes
+
+  - name: Copy AWS credentials to instance to enable use of aws s3 cli"
+    copy:
+        src:  "/root/.aws/"
+        dest: "/home/ubuntu/.aws/"
+        owner: ubuntu
+        group: ubuntu
+
+  - name: Download awscliv2 installer.
+    unarchive:
+      src: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+      dest: /home/ubuntu/
+      remote_src: yes
+      creates: /home/ubuntu/aws
+      mode: 0755
+
+  - name: Run the installer
+    command:
+    args:
+      cmd: "/home/ubuntu/aws/install"
+      creates: /usr/local/bin/aws
+    become: true
+    register: aws_install
+
+  - name: "Download previously uploaded qcow2 from S3 bucket"
+    command:  "aws s3 cp s3://{{ iso_bucket }}/xrv9k-fullk9-x.qcow2 /home/ubuntu/xrv9k-fullk9-x.qcow2"
+    args:
+        creates: /home/ubuntu/xrv9k-fullk9-x.qcow2
+    become: no
+
+
+  - name: "Deleting the qcow2 object from S3 bucket"
+    command:  "aws s3 rm s3://{{ iso_bucket }}/xrv9k-fullk9-x.qcow2"
+    become: no
+
+
+  - name: Move xrv9k qcow2 image on AWS AMI builder from home directory to mount volume
+    command: "mv /home/ubuntu/xrv9k-fullk9-x.qcow2 /mnt/xrv9k-fullk9-x.qcow2"
+    args:
+      removes: "/home/ubuntu/xrv9k-fullk9-x.qcow2" 
+      creates: "/mnt/xrv9k-fullk9-x.qcow2"
+
+  - name: Convert qcow2 to raw image and mount on AWS AMI builder
+    script: "{{ playbook_dir }}/scripts/install_qcow2.sh"
