@@ -238,6 +238,22 @@ variable "s3_iso_bucket" {
 
 ```
 
+## Enabling Debugs
+The logs thrown on stdout by Terraform are usually good enough to see what's happening with the build process.
+But if you'd like to enable verbose debugging then, set the DEBUG environment variable to a non-zero value before initiating the build:
+
+```
+export DEBUG=1
+
+```
+## Disabling Debugs
+
+Set DEBUG to 0 to disable debugs:
+
+```
+export DEBUG=0
+
+```
 
 ## Building the AMI
 
