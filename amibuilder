@@ -3,10 +3,18 @@ SECONDS=0
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 GREEN='\033[0;32m'
-
 echo "####################################################"
 echo -e "${GREEN}Initializing the build process ...${NC}"
 echo "####################################################"
+
+
+if [ $DEBUG -ne 0 ]; then
+    echo "Enabling Terraform debugs"
+    TF_LOG="trace"
+else
+    echo "Disabling Terraform debugs"
+    TF_LOG="off"
+fi
 
 # Init Terraform to run against AWS EC2 before starting the build
 docker run -it --rm --name ami_builder -v ~/.ssh:/root/.ssh \
@@ -14,7 +22,7 @@ docker run -it --rm --name ami_builder -v ~/.ssh:/root/.ssh \
            -v ${PWD}/ansible/ssh_config:/root/.ssh/config  \
            -v ${PWD}:/root/terraform \
            -w /root/terraform akshshar/xrv9kami \
-           /bin/bash -c "/usr/bin/terraform init"
+           /bin/bash -c "export TF_LOG=$TF_LOG && /usr/bin/terraform init"
 
 if [ $? -ne 0 ]; then
    echo -e "${RED}Failed to initialize terraform for AWS AMI build, exiting...${NC}"
@@ -33,7 +41,7 @@ else
                -v ${PWD}/ansible/ssh_config:/root/.ssh/config  \
                -v ${PWD}:/root/terraform \
                -w /root/terraform akshshar/xrv9kami \
-               /bin/bash -c "/usr/bin/terraform apply --auto-approve"
+               /bin/bash -c "export TF_LOG=$TF_LOG && /usr/bin/terraform apply --auto-approve"
     if [ $? -ne 0 ]; then
         echo -e "${RED}Failed to apply terraform plan for AWS AMI build, proceed to destroy as applicable ...${NC}"
         # Destroy the entire build setup
@@ -42,7 +50,7 @@ else
                    -v ${PWD}/ansible/ssh_config:/root/.ssh/config  \
                    -v ${PWD}:/root/terraform \
                    -w /root/terraform akshshar/xrv9kami \
-                   /bin/bash -c "/usr/bin/terraform destroy --auto-approve"
+                   /bin/bash -c " export TF_LOG=$TF_LOG && /usr/bin/terraform destroy --auto-approve"
         duration=$SECONDS
         echo "$(($duration / 60)) mins $(($duration % 60)) seconds elapsed."
         exit 1
@@ -57,7 +65,7 @@ else
                    -v ${PWD}/ansible/ssh_config:/root/.ssh/config  \
                    -v ${PWD}:/root/terraform \
                    -w /root/terraform akshshar/xrv9kami \
-                   /bin/bash -c "/usr/bin/terraform state rm aws_ami_copy.final_ami"
+                   /bin/bash -c "export TF_LOG=$TF_LOG && /usr/bin/terraform state rm aws_ami_copy.final_ami"
 
 
         if [ $? -ne 0 ];then 
@@ -67,7 +75,7 @@ else
                    -v ${PWD}/ansible/ssh_config:/root/.ssh/config  \
                    -v ${PWD}:/root/terraform \
                    -w /root/terraform akshshar/xrv9kami \
-                   /bin/bash -c "/usr/bin/terraform destroy --auto-approve"
+                   /bin/bash -c "export TF_LOG=$TF_LOG && /usr/bin/terraform destroy --auto-approve"
 
             duration=$SECONDS
             echo "$(($duration / 60)) mins $(($duration % 60)) seconds elapsed."
@@ -82,7 +90,7 @@ else
                        -v ${PWD}/ansible/ssh_config:/root/.ssh/config  \
                        -v ${PWD}:/root/terraform \
                        -w /root/terraform akshshar/xrv9kami \
-                       /bin/bash -c "/usr/bin/terraform destroy --auto-approve"
+                       /bin/bash -c "export TF_LOG=$TF_LOG && /usr/bin/terraform destroy --auto-approve"
             duration=$SECONDS
             echo "$(($duration / 60)) mins $(($duration % 60)) seconds elapsed."
             exit 1
