@@ -1,4 +1,5 @@
 #!/bin/bash
+DEBUG=0
 SECONDS=0
 RED='\033[0;31m'
 NC='\033[0m' # No Color
