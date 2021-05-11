@@ -54,12 +54,12 @@
          group: root
          mode: 755
   
-  - name: Build AWS compatible qcow2 image
+  - name: Build AWS compatible ova image
     command: "/home/ubuntu/sunstone.sh -net build -i /home/ubuntu/xrv9k-fullk9-x.iso -r --cmdline-append \"__aws=true\" --export-images --prod" 
     args:
-        creates: /home/ubuntu/xrv9k-fullk9-x.qcow2
+        creates: /home/ubuntu/xrv9k-fullk9-x.ova
 
 
   - name: Copy xrv9k qcow2 image on AWS AMI builder from home directory to s3 bucket
-    command: "aws s3 cp /home/ubuntu/xrv9k-fullk9-x.qcow2 s3://{{ iso_bucket }}/xrv9k-fullk9-x.qcow2"
+    command: "aws s3 cp /home/ubuntu/xrv9k-fullk9-x.ova s3://{{ iso_bucket }}/xrv9k-fullk9-x.ova"
     become: no
