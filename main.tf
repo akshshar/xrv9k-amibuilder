@@ -31,16 +31,6 @@ resource "aws_s3_bucket_object" "object" {
 }
 
 
-data "aws_ec2_spot_price" "metal" {
-  instance_type     = "m5zn.metal"
-  availability_zone = "us-west-2a"
-
-  filter {
-    name   = "product-description"
-    values = ["Linux/UNIX"]
-  }
-}
-
 resource "aws_default_vpc" "default" {
   tags = {
     Name = "Default VPC"
@@ -79,14 +69,12 @@ resource "aws_security_group" "server_sg" {
   }
 }
 
-resource "aws_spot_instance_request" "iso2qcow2" {
+resource "aws_instance" "iso2qcow2" {
   ami           = "${var.aws_ami_ubuntu1604[var.aws_region]}"
-  spot_price    = "${data.aws_ec2_spot_price.metal.spot_price}"
   instance_type = "${var.ami_builder_instance_type}"
   key_name      = "${aws_key_pair.aws_keypair.key_name}"
   vpc_security_group_ids      = ["${aws_security_group.server_sg.id}"]
   associate_public_ip_address = true
-  wait_for_fulfillment = true
 
   tags = {
     Name = "iso2qcow2_builder"
@@ -133,7 +121,7 @@ resource "aws_instance" "xrv9k_ami_builder" {
   }
 
   depends_on = [
-    aws_spot_instance_request.iso2qcow2,
+    aws_instance.iso2qcow2,
   ]
 
 
