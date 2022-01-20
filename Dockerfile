@@ -1,4 +1,7 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
 
 RUN apt-get update && apt-get install -y vim curl python3 python3-pip openssh-client lsb-release software-properties-common
 RUN python3 -m pip install ansible
