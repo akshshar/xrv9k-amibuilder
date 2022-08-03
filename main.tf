@@ -132,7 +132,7 @@ resource "aws_instance" "xrv9k_ami_builder" {
   }
   ebs_block_device {
       delete_on_termination = true
-      volume_size = 46
+      volume_size = 64
       device_name = "/dev/sdc"
       volume_type = "gp2"
   }
